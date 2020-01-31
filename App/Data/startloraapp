@@ -1,0 +1,7 @@
+
+if [ ! "$(pidof apache2)" ]; then
+	service apache2 start;
+fi
+echo "Starting mqtt subscriber..."
+mosquitto_sub -h eu.thethings.network -t '+/devices/+/up' -u "$APPID" -P "$APPKey" | awk -f /usr/bin/LoraParse0.awk
+echo "Stopped mqtt subscriber"

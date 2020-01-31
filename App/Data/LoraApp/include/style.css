@@ -1,0 +1,35 @@
+body {
+  background-color: #d5f4e6;
+  display: grid;
+  grid-template-rows: 10% auto;
+  grid-template-columns: 50% 50%;
+  margin-top: 0;
+  margin-bottom: 0;
+  margin-left: 20px;
+  margin-right: 20px;
+}
+
+body h1{
+  text-align: center;
+}
+
+body h2{
+  margin-left: 20px;
+}
+
+body header {
+  background-color: #618685;
+
+  grid-row: 1;
+  grid-column-start:1;
+  grid-column-end: 3;
+  margin-bottom: 20px;
+}
+
+#temperatureLine {
+  grid-column: 1;
+}
+
+#humidityLine {
+  grid-column: 2;
+}

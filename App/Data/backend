@@ -1,0 +1,56 @@
+
+function parse_payload($payload){
+	$words= unpack('n*',base64_decode($payload));
+	$res = array();
+	$res['dhtValidity'] = false;
+	/*Unpack results start from 1 as index (Don't ask me why)*/
+	if(($words[1] & 0x8000) == 0x8000)
+		$res["dhtValidity"] = true;
+	$res["frameCounter"] = ($words[1]&0x7FFF);
+	$res["dhtTemperature"] = ((float)$words[2])/256;
+	$res["dhtHumidity"] = ((float)$words[3])/256;
+	$res["internalTemperature"] = ((float)$words[4])/256;
+	return $res;
+}
+if ($_SERVER['REQUEST_METHOD'] == 'POST'){
+	$headers = apache_request_headers();
+	if(isset($headers['Authorization']) && ($headers['Authorization'] == $authorization)){
+		/*Main code*/
+		$body = file_get_contents('php://input');
+		$json = json_decode($body, true);
+		/*Once you're here there's nothing much to sanitize*/
+		$timestamp = explode('.',$json['metadata']['time'])[0];
+		$json2 = array();
+		$json2["counter"] = $json["counter"];
+		if (isset($json["metadata"]["gateways"])){
+			$json2["gateways"] = $json["metadata"]["gateways"];
+		}
+		$json2["deviceData"] = parse_payload($json["payload_raw"]);
+		$json2["deviceData"]["date"] =$timestamp;
+
+		$tokens=explode("T", $timestamp);
+		$data =$tokens[0];
+		$json_data=[];
+		$filename = $rootdir.'/json/'.$data.".json";
+		$strJsonFileContents="";
+		if (file_exists($filename)){
+		$strJsonFileContents=file_get_contents($filename);
+		$json_data= json_decode($strJsonFileContents, true);
+		array_push($json_data, $json2);
+		$strJsonFileContents=json_encode($json_data);
+		file_put_contents($filename, $strJsonFileContents);
+		}else{
+		array_push($json_data, $json2);
+		$strJsonFileContents =json_encode($json_data);
+		file_put_contents($filename, $strJsonFileContents);
+		}
+
+		http_response_code(200);
+		exit(0);
+	}
+}
+sleep(3);
+http_response_code(403);
+exit(0);
+
+?>
